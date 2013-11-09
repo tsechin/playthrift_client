@@ -21,21 +21,27 @@ public class LoadTest extends Thread {
     }
 
     public void run() {
+        boolean[] startFlag = new boolean[1];
+        startFlag[0] = false;
+
         // initialize sub-threads
         for (int i=0; i<this.nThreads; i++) {
-            this.subThreads[i] = new LoadTestSub(reqPerThread, url);
+            this.subThreads[i] = new LoadTestSub(startFlag, reqPerThread, url);
         }
-        long tAllStart = System.currentTimeMillis();
         // start sub-threads
         for (int i=0; i<this.nThreads; i++) {
             this.subThreads[i].start();
         }
+        // set startFlag
+        long tAllStart = System.currentTimeMillis();
+        startFlag[0] = true;
         // wait for sub-threads
         for (int i=0; i<this.nThreads; i++) {
             try {
                 this.subThreads[i].join();
             } catch (InterruptedException e) {
                 e.printStackTrace();
+                i--;
             }
         }
         long tAllEnd = System.currentTimeMillis();
@@ -77,11 +83,13 @@ public class LoadTest extends Thread {
     }
 
     private class LoadTestSub extends Thread {
+        private boolean[] startFlag = null;
         private int reqPerThread = 0;
         private String url = null;
         public boolean[] requestSuccess = null;
         public long[] requestMillisec = null;
-        public LoadTestSub(int reqPerThread, String url) {
+        public LoadTestSub(boolean[] startFlag, int reqPerThread, String url) {
+            this.startFlag = startFlag;
             this.reqPerThread = reqPerThread;
             this.url = url;
             this.requestSuccess = new boolean[reqPerThread];
@@ -93,6 +101,7 @@ public class LoadTest extends Thread {
                 THttpClient tHttpClient = new THttpClient(url, hc);
                 TProtocol tProtocol = new TBinaryProtocol(tHttpClient);
                 MathService.Client client = new MathService.Client(tProtocol);
+                while(!startFlag[0]); // wait for the start flag
                 for (int iter=0; iter<this.reqPerThread; iter++) {
                     long tStart = System.currentTimeMillis();
                     int result = client.addFive(10);
