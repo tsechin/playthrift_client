@@ -39,3 +39,5 @@ libraryDependencies ++= Seq(
 ideaExcludeFolders += ".idea"
 
 ideaExcludeFolders += ".idea_modules"
+
+mainClass in (Compile, run) := Some("playthrift_client.Main")
