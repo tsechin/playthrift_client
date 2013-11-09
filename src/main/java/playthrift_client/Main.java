@@ -9,7 +9,7 @@ import thrift_mathservice.MathService;
 
 public class Main {
     private static final String url = "http://localhost:9000/math";
-                                                            s
+
 	public static void main(String args[]) {
         try {
 
